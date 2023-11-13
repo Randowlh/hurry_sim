@@ -40,7 +40,7 @@ def read_tle(filename_tles):
             # See also: https://www.celestrak.com/columns/v04n03/#FAQ04
             epoch_year = tles_line_2[18:20]
             epoch_day = float(tles_line_2[20:32])
-            epoch = Time("20" + epoch_year + "-01-01 00:00:00", scale="tdb") + (epoch_day - 1) * u.day
+            epoch = Time("20" + "00" + "-01-01 00:00:00", scale="tdb") + (epoch_day - 1) * u.day
             if universal_epoch is None:
                 universal_epoch = epoch
             if epoch != universal_epoch:
