@@ -47,11 +47,9 @@ def send(key,
          num_satellite,
          current_loop_id,
          satellite_queue,ground_station_queue,packet_droped_table,satellites,ground_stations,isl_packet_drop_rate,gsl_packet_drop_rate,time_step):
-  print("call sent")
   delay=None
   if sat_id_to<num_satellite:
     # return
-    print("sent to sat")
     delay=send_packet_sat_to_sat(satellites[sat_id_from],satellites[sat_id_to],isl_packet_drop_rate,epoch,now)
     if delay!=None:
       # delay+=time_step*0.1
@@ -67,7 +65,6 @@ def send(key,
       packet_droped_table[math.ceil(key/time_step)]+=count
   else:
     delay=send_packet_sat_to_gs(satellites[sat_id_from],ground_stations[sat_id_to-num_satellite],gsl_packet_drop_rate,epoch,now)
-    print("sent to gs")
     if delay!=None:
       # delay+=time_step*1.1
       loss_packet_num=efficient_lost_packets(count,gsl_packet_drop_rate)
@@ -91,7 +88,6 @@ def simulator(
       isl_link_bandwidth,
       epoch,
     ):
-  print(routing_table)
   max_gsl_length_m=1260000.0000000000
   max_isl_length_m=5442958.2030362869
   total_time_step=int(total_sim_time/time_step)
@@ -115,11 +111,11 @@ def simulator(
     packet_droped_table.append(0)
     latency_table.append([0,0])
     throughput_table.append(0)
-    satellite_queue_len.append(0)
     ground_station_queue_len.append(0)
   
   for i in range(0, total_time_step+10):
       satellite_queue.append([])
+
       for j in range(0, num_satellite):
           satellite_queue[i].append({})
           
@@ -131,6 +127,7 @@ def simulator(
   # 初始化存储队列
   
   for i in range(0, num_satellite+10):
+      satellite_queue_len.append([])
       satellite_store_queue.append({})
   for i in range(0, num_ground_station):
       ground_station_store_queue.append({})
@@ -154,10 +151,9 @@ def simulator(
         continue
       # print("here",satellite_id,current_loop_id)
       Queue_size=get_size(satellite_store_queue[satellite_id])
-      satellite_queue_len[current_loop_id]+=Queue_size
+      satellite_queue_len[satellite_id].append(Queue_size)
       # print("current route id",current_routing_table_id)
       if routing_table[current_routing_table_id][satellite_id+1]!=[]:
-        print(routing_table[current_routing_table_id][satellite_id+1])
         # print("here have routing table")
         #计算传输数据比例
         # print("satellite_id",satellite_id)

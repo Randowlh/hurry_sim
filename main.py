@@ -15,11 +15,11 @@ import sim_with_umbra
 import sim_with_max_flow_isl
 import sim_with_coDld
 import simulator
-satellite_generated_packages_per_time_step = 12000
+satellite_generated_packages_per_time_step = 4 # 400 mbps
 ground_station_handle_packages_per_time_step = []
 ground_station_max_transmit_packets_per_time_step = []
-ground_station_max_cap = 310000
-isl_max_cap = 12000
+ground_station_max_cap = 10 # 10Gbps
+isl_max_cap = 10 # 10Gbps
 throughput_table = []
 throughput_table_with_isl = []
 max_gsl_length_m = 1260000.0000000000
@@ -38,8 +38,8 @@ m_satellite_queue = []
 m_ground_station_queue = []
 m_ground_station_cap = []
 num_satellites_per_orbit = 0
-total_sim_time_ns = 1000000000000 # 3s
-sim_time_step_ns = 100000000 # 1ms
+total_sim_time_ns = 360000000000 # 3s
+sim_time_step_ns = 100000000 # 100ms
 inf = 99999999999999
 
 def generate_bandwidth(total, num):
@@ -101,7 +101,7 @@ def store_throughput_table():
     
             
             
-#########################################################################33
+#########################################################################
 #################################################################
 
 
@@ -134,19 +134,20 @@ def run_baseline():
                                                                                                                   ground_station_max_cap,
                                                                                                                   isl_max_cap,
                                                                                                                   m_epoch)
-    with open("throughput.txt", 'w') as f:
+    with open("gen_data/throughput.txt", 'w') as f:
         for i in throughput_table:
             f.write(str(i)+"\n")
-    with open("latency.txt", 'w') as f:
+    with open("gen_data/latency.txt", 'w') as f:
         for i in latency:
             f.write(str(i)+"\n")
-    with open("packet_droped_table.txt", 'w') as f:
+    with open("gen_data/packet_droped_table.txt", 'w') as f:
         for i in packet_droped_table:
             f.write(str(i)+"\n")
-    with open("satellite_queue_len.txt", 'w') as f:
-        for i in satellite_queue_len:
-            f.write(str(i)+"\n")
-    with open("ground_station_queue_len.txt", 'w') as f:
+    for i in range(0, len(m_satellite)):
+        with open("gen_data/SAT"+str(i)+"satellite_queue_len_baseline.txt", 'w') as f:
+            for j in satellite_queue_len[i]:
+                f.write(str(j)+"\n")
+    with open("gen_data/ground_station_queue_len.txt", 'w') as f:
         for i in ground_station_queue_len:
             f.write(str(i)+"\n")
     # print("simulator complete")   
@@ -182,19 +183,20 @@ def run_with_isl():
                                                                                                                   ground_station_max_cap,
                                                                                                                   isl_max_cap,
                                                                                                                   m_epoch)
-    with open("throughput_with_isl.txt", 'w') as f:
+    with open("gen_data/throughput_with_isl.txt", 'w') as f:
         for i in throughput_table:
             f.write(str(i)+"\n")
-    with open("latency_with_isl.txt", 'w') as f:
+    with open("gen_data/latency_with_isl.txt", 'w') as f:
         for i in latency:
             f.write(str(i)+"\n")
-    with open("packet_droped_table_with_isl.txt", 'w') as f:
+    with open("gen_data/acket_droped_table_with_isl.txt", 'w') as f:
         for i in packet_droped_table:
             f.write(str(i)+"\n")
-    with open("satellite_queue_len_with_isl.txt", 'w') as f:
-        for i in satellite_queue_len:
-            f.write(str(i)+"\n")
-    with open("ground_station_queue_len_with_isl.txt", 'w') as f:
+    for i in range(0, len(m_satellite)):
+        with open("gen_data/SAT"+str(i)+"satellite_queue_len_with_isl.txt", 'w') as f:
+            for j in satellite_queue_len[i]:
+                f.write(str(j)+"\n")
+    with open("gen_data/ground_station_queue_len_with_isl.txt", 'w') as f:
         for i in ground_station_queue_len:
             f.write(str(i)+"\n")
     print("simulator complete")       
@@ -230,19 +232,20 @@ def run_with_umbra():
                                                                                                                   ground_station_max_cap,
                                                                                                                   isl_max_cap,
                                                                                                                   m_epoch)
-    with open("throughput_with_umbra.txt", 'w') as f:
+    with open("gen_data/throughput_with_umbra.txt", 'w') as f:
         for i in throughput_table:
             f.write(str(i)+"\n")
-    with open("latency_with_umbra.txt", 'w') as f:
+    with open("gen_data/latency_with_umbra.txt", 'w') as f:
         for i in latency:
             f.write(str(i)+"\n")
-    with open("packet_droped_table_with_umbra.txt", 'w') as f:
+    with open("gen_data/packet_droped_table_with_umbra.txt", 'w') as f:
         for i in packet_droped_table:
             f.write(str(i)+"\n")
-    with open("satellite_queue_len_with_umbra.txt", 'w') as f:
-        for i in satellite_queue_len:
-            f.write(str(i)+"\n")
-    with open("ground_station_queue_len_with_umbra.txt", 'w') as f:
+    for i in range(0, len(m_satellite)):
+        with open("gen_data/SAT"+str(i)+"satellite_queue_len_with_umbra.txt", 'w') as f:
+            for j in satellite_queue_len[i]:
+                f.write(str(j)+"\n")
+    with open("gen_data/ground_station_queue_len_with_umbra.txt", 'w') as f:
         for i in ground_station_queue_len:
             f.write(str(i)+"\n")
     print("simulator complete")   
@@ -280,19 +283,21 @@ def run_with_max_flow_isl():
                                                                                                                   ground_station_max_cap,
                                                                                                                   isl_max_cap,
                                                                                                                   m_epoch)
-    with open("throughput_with_flow.txt", 'w') as f:
+    with open("gen_data/throughput_with_flow.txt", 'w') as f:
         for i in throughput_table:
             f.write(str(i)+"\n")
-    with open("latency_with_flow.txt", 'w') as f:
+    with open("gen_data/latency_with_flow.txt", 'w') as f:
         for i in latency:
             f.write(str(i)+"\n")
-    with open("packet_droped_table_with_flow.txt", 'w') as f:
+    with open("gen_data/packet_droped_table_with_flow.txt", 'w') as f:
         for i in packet_droped_table:
             f.write(str(i)+"\n")
-    with open("satellite_queue_len_with_flow.txt", 'w') as f:
-        for i in satellite_queue_len:
-            f.write(str(i)+"\n")
-    with open("ground_station_queue_len_with_flow.txt", 'w') as f:
+    for i in range(0, len(m_satellite)):
+        with open("gen_data/SAT"+str(i)+"satellite_queue_len_with_flow.txt", 'w') as f:
+            for j in satellite_queue_len[i]:
+                f.write(str(j)+"\n")
+
+    with open("gen_data/ground_station_queue_len_with_flow.txt", 'w') as f:
         for i in ground_station_queue_len:
             f.write(str(i)+"\n")
     print("simulator complete")   
@@ -330,19 +335,20 @@ def run_with_coDld():
                                                                                                                   ground_station_max_cap,
                                                                                                                   isl_max_cap,
                                                                                                                   m_epoch)
-    with open("throughput_with_coDld.txt", 'w') as f:
+    with open("gen_data/throughput_with_coDld.txt", 'w') as f:
         for i in throughput_table:
             f.write(str(i)+"\n")
-    with open("latency_with_coDld.txt", 'w') as f:
+    with open("gen_data/latency_with_coDld.txt", 'w') as f:
         for i in latency:
             f.write(str(i)+"\n")
-    with open("packet_droped_table_with_coDld.txt", 'w') as f:
+    with open("gen_data/packet_droped_table_with_coDld.txt", 'w') as f:
         for i in packet_droped_table:
             f.write(str(i)+"\n")
-    with open("satellite_queue_len_with_coDld.txt", 'w') as f:
-        for i in satellite_queue_len:
-            f.write(str(i)+"\n")
-    with open("ground_station_queue_len_with_coDld.txt", 'w') as f:
+    for i in range(0, len(m_satellite)):
+        with open("gen_data/SAT"+str(i)+"satellite_queue_len_with_coDld.txt", 'w') as f:
+            for j in satellite_queue_len[i]:
+                f.write(str(j)+"\n")
+    with open("gen_data/ground_station_queue_len_with_coDld.txt", 'w') as f:
         for i in ground_station_queue_len:
             f.write(str(i)+"\n")
     print("simulator complete")   
