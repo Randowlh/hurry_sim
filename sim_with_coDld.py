@@ -66,7 +66,7 @@ def caculate_coDld(all_G,satellite_O):
                     satellite_O[sender]-=maxflow.Flow(arc)*1
                     satellite_O[receiver]+=maxflow.Flow(arc)*1
 
-    print("looped "+str(loop_count)+" times")
+    # print("looped "+str(loop_count)+" times")
         # max_matching = bipartite.maximum_matching(G)
         # pairs = [(u, v) for u, v in max_matching.items() if u in U]
         # for pair in pairs:

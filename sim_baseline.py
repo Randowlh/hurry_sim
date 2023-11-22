@@ -27,7 +27,7 @@ def generate_baseline(total_sim_time_ns,
         ground_station_flag.append(0)
     for time_since_epoch in range(0,total_sim_time_ns,sim_time_step_ns):
         # if time_since_epoch % (total_sim_time_ns // 100) == 0:
-        print("Simulation progress: {:.2%}".format(time_since_epoch / total_sim_time_ns))
+        print("baseline generating progress: {:.2%}".format(time_since_epoch / total_sim_time_ns))
         for i in range(0, len(ground_stations)):
             ground_station_flag[i]=0
             
@@ -55,7 +55,7 @@ def generate_baseline(total_sim_time_ns,
                 routing_table_satellite.append([closest_groundstation["gid"]+len(satellites),gsl_link_cap]) 
                 ground_station_flag[closest_groundstation["gid"]]=1
             routing_table_now.append(routing_table_satellite)
-        print("generating progress: {:.2%}".format(time_since_epoch / total_sim_time_ns), end="\r")
+        # print("generating progress: {:.2%}".format(time_since_epoch / total_sim_time_ns), end="\r")
         routing_table.append(routing_table_now)
     print("sim_baseline generating complete")
     # print("routing_table",routing_table)

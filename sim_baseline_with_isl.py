@@ -35,7 +35,7 @@ def generate_with_isl(satellites,
         # if time_since_epoch % (total_sim_time_ns // 100) == 0:
         for i in range(0, len(ground_stations)):
             ground_station_flag[i]=0
-        print("Simulation progress: {:.2%}".format(time_since_epoch / total_sim_time_ns))
+        print("baseline isl generating progress: {:.2%}".format(time_since_epoch / total_sim_time_ns))
         total_throughput=0
         now=time_since_epoch*u.ns+epoch
         routing_table_now=[now]

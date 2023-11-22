@@ -72,7 +72,7 @@ def sim_with_umbra( total_sim_time_ns,
     throughput=[]
     matching=[]
     for time_since_epoch in range(0,total_sim_time_ns,sim_time_step_ns):
-        print("Simulation progress: {:.2%}".format(time_since_epoch / total_sim_time_ns))
+        print("umbra generating progress: {:.2%}".format(time_since_epoch / total_sim_time_ns))
         now=time_since_epoch*u.ns+epoch
         G=nx.Graph()
         for i in range(0, len(satellites)):

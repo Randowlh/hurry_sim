@@ -240,4 +240,6 @@ def simulator(
 
   return throughput_table,latency,packet_droped_table,satellite_queue_len,ground_station_queue_len
     
-      
+if __name__ == '__main__':
+  pass
+  # test here

@@ -285,10 +285,10 @@ def run_with_max_flow_isl():
                                                                                                                   ground_station_max_cap,
                                                                                                                   isl_max_cap,
                                                                                                                   m_epoch)
-    with open(full_path_str+"gen_data/throughput_with_flow.txt", 'w') as f:
+    with open(full_path_str+"throughput_with_flow.txt", 'w') as f:
         for i in throughput_table:
             f.write(str(i)+"\n")
-    with open(full_path_str+"gen_data/latency_with_flow.txt", 'w') as f:
+    with open(full_path_str+"latency_with_flow.txt", 'w') as f:
         for i in latency:
             f.write(str(i)+"\n")
     with open(full_path_str+"packet_droped_table_with_flow.txt", 'w') as f:
@@ -398,7 +398,7 @@ if __name__ == "__main__":
     ground_station_max_transmit_packets_per_time_step=int(sys.argv[4])
     isl_max_cap=int(sys.argv[5])
     sim_name=sys.argv[6]
-    folder_name = sim_name+"_sat_"+str(satellite_generated_packages_per_time_step)+"_gsl_"+str(ground_station_max_transmit_packets_per_time_step)+"_sim_time_"+str(total_sim_time_ns)+"_sim_step_"+str(sim_time_step_ns)
+    folder_name = sim_name+"_sat_"+str(satellite_generated_packages_per_time_step)+"_gsl_"+str(ground_station_max_transmit_packets_per_time_step)+"_sim_time_"+str(total_sim_time_ns//1000000)+"_sim_step_"+str(sim_time_step_ns//1000000)
     father_path = "gen_data"
     
     full_path = os.path.join(father_path, folder_name)
