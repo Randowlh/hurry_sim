@@ -16,7 +16,10 @@ import sim_baseline_with_isl
 import sim_with_umbra
 import sim_with_max_flow_isl
 import sim_with_coDld
+import sim_with_hurry
+import sim_with_cost_flow
 import simulator
+import sim_with_test
 satellite_generated_packages_per_time_step = 4 # 400 mbps
 ground_station_handle_packages_per_time_step = []
 ground_station_max_transmit_packets_per_time_step = []
@@ -146,14 +149,61 @@ def run_baseline():
         for i in packet_droped_table:
             f.write(str(i)+"\n")
     for i in range(0, len(m_satellite)):
-        with open(full_path_str+""+"SAT"+str(i)+"satellite_queue_len_baseline.txt", 'w') as f:
+        with open(full_path_str+"baseline_queue/"+"SAT"+str(i)+"satellite_queue_len_baseline.txt", 'w') as f:
             for j in satellite_queue_len[i]:
                 f.write(str(j)+"\n")
-    with open(full_path_str+"baseline_queue/"+"ground_station_queue_len.txt", 'w') as f:
+    with open(full_path_str+"ground_station_queue_len.txt", 'w') as f:
         for i in ground_station_queue_len:
             f.write(str(i)+"\n")
     # print("simulator complete")   
 
+
+def run_with_test():
+    global m_satellite,m_ground_stations,edges,total_sim_time_ns,sim_time_step_ns,m_epoch,ground_station_max_transmit_packets_per_time_step,max_gsl_length_m,isl_max_cap
+    routing_table = sim_with_test.generate_with_test(m_satellite.copy(),
+                                                            m_ground_stations.copy(),
+                                                            edges.copy(),
+                                                            total_sim_time_ns,
+                                                            sim_time_step_ns,
+                                                            m_epoch,
+                                                            ground_station_max_transmit_packets_per_time_step.copy(),
+                                                            max_gsl_length_m,
+                                                            isl_max_cap)
+
+    
+    # print("sim_baseline complete")
+    # print(routing_table)
+    # return
+    # print(throughput_table)
+    throughput_table,latency,packet_droped_table,satellite_queue_len,ground_station_queue_len=simulator.simulator(m_satellite.copy(),
+                                                                                                                  m_ground_stations.copy(),
+                                                                                                                  isl_packet_drop_rate,
+                                                                                                                  gsl_packet_drop_rate,
+                                                                                                                  routing_table.copy(),
+                                                                                                                  sim_time_step_ns,
+                                                                                                                  total_sim_time_ns,
+                                                                                                                  satellite_generated_packages_per_time_step,
+                                                                                                                  ground_station_handle_packages_per_time_step.copy(),
+                                                                                                                  ground_station_max_cap,
+                                                                                                                  isl_max_cap,
+                                                                                                                  m_epoch)
+    with open(full_path_str+"throughput_with_test.txt", 'w') as f:
+        for i in throughput_table:
+            f.write(str(i)+"\n")
+    with open(full_path_str+"latency_with_test.txt", 'w') as f:
+        for i in latency:
+            f.write(str(i)+"\n")
+    with open(full_path_str+"packet_droped_table_with_test.txt", 'w') as f:
+        for i in packet_droped_table:
+            f.write(str(i)+"\n")
+    for i in range(0, len(m_satellite)):
+        with open(full_path_str+"with_test_queue/"+"SAT"+str(i)+"satellite_queue_len_with_test.txt", 'w') as f:
+            for j in satellite_queue_len[i]:
+                f.write(str(j)+"\n")
+    with open(full_path_str+"ground_station_queue_len_with_test.txt", 'w') as f:
+        for i in ground_station_queue_len:
+            f.write(str(i)+"\n")
+    print("simulator complete")       
 
 
 def run_with_isl():
@@ -304,7 +354,109 @@ def run_with_max_flow_isl():
             f.write(str(i)+"\n")
     print("simulator complete")   
     
+def run_with_cost_flow():
+    global total_sim_time_ns,sim_time_step_ns,m_satellite,m_ground_stations,m_epoch,satellite_generated_packages_per_time_step,ground_station_max_transmit_packets_per_time_step,ground_station_handle_packages_per_time_step,max_gsl_length_m,edges,isl_max_cap
+    routing_table = sim_with_cost_flow.sim_with_cost_flow(total_sim_time_ns,
+                                                            sim_time_step_ns,
+                                                            m_satellite.copy(),
+                                                            m_ground_stations.copy(),
+                                                            
+                                                            m_epoch,
+                                                            satellite_generated_packages_per_time_step,
+                                                            ground_station_max_transmit_packets_per_time_step.copy(),
+                                                            
+                                                            ground_station_handle_packages_per_time_step.copy(),
+                                                            max_gsl_length_m,
+                                                            edges.copy(),
+                                                            isl_max_cap
+                                                            )
+
+    # print("sim_baseline complete")
+    # print(routing_table)
+    # return
+    # print(throughput_table)
+    throughput_table,latency,packet_droped_table,satellite_queue_len,ground_station_queue_len=simulator.simulator(m_satellite.copy(),
+                                                                                                                  m_ground_stations.copy(),
+                                                                                                                  isl_packet_drop_rate,
+                                                                                                                  gsl_packet_drop_rate,
+                                                                                                                  routing_table.copy(),
+                                                                                                                  sim_time_step_ns,
+                                                                                                                  total_sim_time_ns,
+                                                                                                                  satellite_generated_packages_per_time_step,
+                                                                                                                  ground_station_handle_packages_per_time_step.copy(),
+                                                                                                                  ground_station_max_cap,
+                                                                                                                  isl_max_cap,
+                                                                                                                  m_epoch)
+    with open(full_path_str+"throughput_with_cost_flow.txt", 'w') as f:
+        for i in throughput_table:
+            f.write(str(i)+"\n")
+    with open(full_path_str+"latency_with_cost_flow.txt", 'w') as f:
+        for i in latency:
+            f.write(str(i)+"\n")
+    with open(full_path_str+"packet_droped_table_with_cost_flow.txt", 'w') as f:
+        for i in packet_droped_table:
+            f.write(str(i)+"\n")
+    for i in range(0, len(m_satellite)):
+        with open(full_path_str+"with_cost_flow_queue/"+"SAT"+str(i)+"satellite_queue_len_with_cost_flow.txt", 'w') as f:
+            for j in satellite_queue_len[i]:
+                f.write(str(j)+"\n")
+
+    with open(full_path_str+"ground_station_queue_len_with_cost_flow.txt", 'w') as f:
+        for i in ground_station_queue_len:
+            f.write(str(i)+"\n")
+    print("simulator complete")   
     
+def run_with_hurry():
+    global total_sim_time_ns,sim_time_step_ns,m_satellite,m_ground_stations,m_epoch,satellite_generated_packages_per_time_step,ground_station_max_transmit_packets_per_time_step,ground_station_handle_packages_per_time_step,max_gsl_length_m,edges,isl_max_cap
+    routing_table = sim_with_hurry.sim_with_hurry(total_sim_time_ns,
+                                                            sim_time_step_ns,
+                                                            m_satellite.copy(),
+                                                            m_ground_stations.copy(),
+                                                            
+                                                            m_epoch,
+                                                            satellite_generated_packages_per_time_step,
+                                                            ground_station_max_transmit_packets_per_time_step.copy(),
+                                                            
+                                                            ground_station_handle_packages_per_time_step.copy(),
+                                                            max_gsl_length_m,
+                                                            edges.copy(),
+                                                            isl_max_cap
+                                                            )
+
+    # print("sim_baseline complete")
+    # print(routing_table)
+    # return
+    # print(throughput_table)
+    throughput_table,latency,packet_droped_table,satellite_queue_len,ground_station_queue_len=simulator.simulator(m_satellite.copy(),
+                                                                                                                  m_ground_stations.copy(),
+                                                                                                                  isl_packet_drop_rate,
+                                                                                                                  gsl_packet_drop_rate,
+                                                                                                                  routing_table.copy(),
+                                                                                                                  sim_time_step_ns,
+                                                                                                                  total_sim_time_ns,
+                                                                                                                  satellite_generated_packages_per_time_step,
+                                                                                                                  ground_station_handle_packages_per_time_step.copy(),
+                                                                                                                  ground_station_max_cap,
+                                                                                                                  isl_max_cap,
+                                                                                                                  m_epoch)
+    with open(full_path_str+"throughput_with_hurry.txt", 'w') as f:
+        for i in throughput_table:
+            f.write(str(i)+"\n")
+    with open(full_path_str+"latency_with_hurry.txt", 'w') as f:
+        for i in latency:
+            f.write(str(i)+"\n")
+    with open(full_path_str+"packet_droped_table_with_hurry.txt", 'w') as f:
+        for i in packet_droped_table:
+            f.write(str(i)+"\n")
+    for i in range(0, len(m_satellite)):
+        with open(full_path_str+"with_hurry_queue/"+"SAT"+str(i)+"satellite_queue_len_with_hurry.txt", 'w') as f:
+            for j in satellite_queue_len[i]:
+                f.write(str(j)+"\n")
+
+    with open(full_path_str+"ground_station_queue_len_with_hurry.txt", 'w') as f:
+        for i in ground_station_queue_len:
+            f.write(str(i)+"\n")
+    print("simulator complete")   
 
 def run_with_coDld():
     global total_sim_time_ns,sim_time_step_ns,m_satellite,m_ground_stations,m_epoch,satellite_generated_packages_per_time_step,ground_station_max_transmit_packets_per_time_step,ground_station_handle_packages_per_time_step,max_gsl_length_m,edges,isl_max_cap
@@ -365,19 +517,27 @@ def main():
     p3 = multiprocessing.Process(target=run_with_umbra)
     p4 = multiprocessing.Process(target=run_with_max_flow_isl)
     p5 = multiprocessing.Process(target=run_with_coDld)
-
+    p6 = multiprocessing.Process(target=run_with_test)
+    p7 = multiprocessing.Process(target=run_with_cost_flow)
+    p8 = multiprocessing.Process(target=run_with_hurry)
     # Start processes
     p1.start()
     p2.start()
     p3.start()
     p4.start()
     p5.start()
+    p6.start()
+    p7.start()
+    p8.start()
     # Wait for processes to finish
     p1.join()
     p2.join()
     p3.join()
     p4.join()
     p5.join()
+    p6.join()
+    p7.join()
+    p8.join()
     # global throughput_table,throughput_table_with_isl,throughput_table_with_umbra
     # print("baseline")   
     # print(throughput_table)
@@ -408,6 +568,9 @@ if __name__ == "__main__":
     os.makedirs(full_path+"/"+"with_umbra_queue", exist_ok=True)
     os.makedirs(full_path+"/"+"with_flow_queue", exist_ok=True)
     os.makedirs(full_path+"/"+"with_coDld_queue", exist_ok=True)
+    os.makedirs(full_path+"/"+"with_test_queue", exist_ok=True)
+    os.makedirs(full_path+"/"+"with_hurry_queue", exist_ok=True)
+    os.makedirs(full_path+"/"+"with_cost_flow_queue", exist_ok=True)
     full_path_str=full_path+"/"
     init()
     main()

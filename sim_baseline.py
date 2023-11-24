@@ -59,5 +59,5 @@ def generate_baseline(total_sim_time_ns,
         routing_table.append(routing_table_now)
     print("sim_baseline generating complete")
     # print("routing_table",routing_table)
-    print(routing_table)
+    # print(routing_table)
     return routing_table

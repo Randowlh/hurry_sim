@@ -46,17 +46,25 @@ def send(key,
          now,
          num_satellite,
          current_loop_id,
-         satellite_queue,ground_station_queue,packet_droped_table,satellites,ground_stations,isl_packet_drop_rate,gsl_packet_drop_rate,time_step):
+         satellite_queue,
+         ground_station_queue,
+         packet_droped_table,
+         satellites,ground_stations,
+         isl_packet_drop_rate,
+         gsl_packet_drop_rate,time_step):
   delay=None
   if sat_id_to<num_satellite:
     # return
-    delay=send_packet_sat_to_sat(satellites[sat_id_from],satellites[sat_id_to],isl_packet_drop_rate,epoch,now)
+    delay= send_packet_sat_to_sat(satellites[sat_id_from],satellites[sat_id_to],isl_packet_drop_rate,epoch,now)
+
+    #send_packet_sat_to_sat(satellites[sat_id_from],satellites[sat_id_to],isl_packet_drop_rate,epoch,now)
     if delay!=None:
       # delay+=time_step*0.1
       loss_packet_num=efficient_lost_packets(count,isl_packet_drop_rate)
       packet_droped_table[math.ceil(key/time_step)]+=loss_packet_num
       # try:
-      satellite_queue[current_loop_id+math.ceil(delay/time_step)][sat_id_to][key]=satellite_queue[current_loop_id+math.ceil(delay/time_step)][sat_id_to].get(key,0)+count-loss_packet_num
+      # print("sat_id_to=",sat_id_to)
+      satellite_queue[current_loop_id+1][sat_id_to][key]=satellite_queue[current_loop_id+1][sat_id_to].get(key,0)+count-loss_packet_num
       # except:
         
       #   print(len(satellite_queue[current_loop_id+math.ceil(delay/time_step)][sat_id_to]))
@@ -64,7 +72,9 @@ def send(key,
     else:
       packet_droped_table[math.ceil(key/time_step)]+=count
   else:
-    delay=send_packet_sat_to_gs(satellites[sat_id_from],ground_stations[sat_id_to-num_satellite],gsl_packet_drop_rate,epoch,now)
+    delay= send_packet_sat_to_gs(satellites[sat_id_from],ground_stations[sat_id_to-num_satellite],gsl_packet_drop_rate,epoch,now)
+    
+    #send_packet_sat_to_gs(satellites[sat_id_from],ground_stations[sat_id_to-num_satellite],gsl_packet_drop_rate,epoch,now)
     if delay!=None:
       # delay+=time_step*1.1
       loss_packet_num=efficient_lost_packets(count,gsl_packet_drop_rate)
@@ -88,6 +98,8 @@ def simulator(
       isl_link_bandwidth,
       epoch,
     ):
+  time_step//=10
+  total_sim_time-=10*time_step
   max_gsl_length_m=1260000.0000000000
   max_isl_length_m=5442958.2030362869
   total_time_step=int(total_sim_time/time_step)
@@ -144,27 +156,17 @@ def simulator(
     for satellite_id in range(0,num_satellite):
       satellite_store_queue[satellite_id][time_since_epoch]=satellite_store_queue[satellite_id].get(time_since_epoch,0)+satellite_generated_packages_per_time_step
       # 生成数据包
-    if routing_table[current_routing_table_id][0]<now:
+    while routing_table[current_routing_table_id][0]<now:
       current_routing_table_id+=1
     for satellite_id in range(0,num_satellite): 
-      if len(satellite_store_queue[satellite_id])==0:
-        continue
-      # print("here",satellite_id,current_loop_id)
       Queue_size=get_size(satellite_store_queue[satellite_id])
-      satellite_queue_len[satellite_id].append(Queue_size)
-      # print("current route id",current_routing_table_id)
+
       if routing_table[current_routing_table_id][satellite_id+1]!=[]:
-        # print("here have routing table")
-        #计算传输数据比例
-        # print("satellite_id",satellite_id)
-        # Queue_size=get_size(satellite_queue[current_loop_id][satellite_id])
-        # satellite_queue_len[current_loop_id]+=Queue_size
         total_out_packets=0
         for i in routing_table[current_routing_table_id][satellite_id+1]:
           total_out_packets+=i[1]
         out_percent=min(1,Queue_size/total_out_packets)
         for i in routing_table[current_routing_table_id][satellite_id+1]:
-          # 遍历转发表并转发
           out_count=math.floor(i[1]*out_percent)
           if(i[0]<num_satellite):
             out_count=min(out_count,isl_link_bandwidth)
@@ -186,11 +188,11 @@ def simulator(
               send(key,count,satellite_id,i[0],epoch,now,num_satellite,current_loop_id,satellite_queue,ground_station_queue,packet_droped_table,satellites,ground_stations,isl_packet_drop_rate,gsl_packet_drop_rate,time_step)
       ########################
       # 卫星保存数据到下一个时刻
-      
+    for satellite_id in range(0,num_satellite):
       for key in list(satellite_queue[current_loop_id+1][satellite_id].keys()):
         satellite_store_queue[satellite_id][key]=satellite_store_queue[satellite_id].get(key,0)+satellite_queue[current_loop_id+1][satellite_id][key]
-      
-      #########################
+      Queue_sizet=get_size(satellite_store_queue[satellite_id])
+      satellite_queue_len[satellite_id].append(Queue_sizet)
 
     for ground_station_id in range(0,num_ground_station):
       
@@ -214,6 +216,7 @@ def simulator(
           total_out_packets=0
           data_center_queue[current_loop_id+1][key]=data_center_queue[current_loop_id+1].get(key,0)+packet
       
+    for ground_station_id in range(0,num_ground_station): 
       for key in list(ground_station_queue[current_loop_id+1][ground_station_id].keys()):
         ground_station_store_queue[ground_station_id][key]=ground_station_store_queue[ground_station_id].get(key,0)+ground_station_queue[current_loop_id+1][ground_station_id][key]
             
@@ -235,8 +238,7 @@ def simulator(
       latency.append(0)
     else:
       latency.append(latency_table[i][0]/latency_table[i][1])
-  # for i in range(len(satellite_queue)):
-  #   print("satellite_queue",i,len(satellite_queue[i]))
+
 
   return throughput_table,latency,packet_droped_table,satellite_queue_len,ground_station_queue_len
     

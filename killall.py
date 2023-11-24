@@ -23,10 +23,7 @@ def kill_processes_by_command(command):
 
 # 定义特定的命令参数
 commands = [
-    'main.py 100000 100 4 10 10 sim_heavy_100',
-    'main.py 100000 100 4 100 100 sim_light_100',
-    'main.py 1000000 1000 4 10 10 sim_heavy_1000',
-    'main.py 1000000 1000 4 100 100 sim_light_1000'
+    'main.py',
 ]
 
 # 对每个命令调用杀死进程的函数
