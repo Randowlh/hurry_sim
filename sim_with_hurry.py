@@ -3,73 +3,64 @@ import networkx as nx
 import astropy.units as u
 from ortools.graph import pywrapgraph
 import visiable_helper
-def construct_flow_graph(matching,
-                         start_id,
-                         end_id,
-                         num_satellite,
-                         num_groundstation,
-                         satellite_generated_packages_per_time_step,
-                         ground_station_max_transmit_packets_per_time_step,
-                         ground_station_handle_packages_per_time_step,
-                         edges,
-                         isl_max_cap
-                         ):
+def construct_flow_graph(matching, start_id, end_id, num_satellite, num_groundstation, satellite_generated_packages_per_time_step, ground_station_max_transmit_packets_per_time_step, ground_station_handle_packages_per_time_step, edges, isl_max_cap):
     inf = 9999999999
-    end_node_id=end_id*(num_satellite+num_groundstation)+1
-    edge_list=[]
-    total_num=num_satellite+num_groundstation
-    for i in range(start_id,end_id):
-        for j in range(0,num_satellite):
-            edge_list.append([0,i*total_num+j+1,satellite_generated_packages_per_time_step])
+    G = nx.DiGraph()
+    end_node_id = end_id * (num_satellite + num_groundstation) + 1
 
-    for i in range(start_id,end_id-1):
-        for j in range(0,total_num):
-            edge_list.append([i*total_num+j+1,(i+1)*total_num+j+1,inf])
+    # 添加节点和边
+    for i in range(start_id, end_id):
+        for j in range(0, num_satellite):
+            G.add_edge(0, i * (num_satellite + num_groundstation) + j + 1, capacity=satellite_generated_packages_per_time_step, weight=0)
 
-    for i in range(start_id,end_id-1):
-        for j in range(0,num_satellite):
+    for i in range(start_id, end_id - 1):
+        for j in range(0, num_satellite + num_groundstation):
+            G.add_edge(i * (num_satellite + num_groundstation) + j + 1, (i + 1) * (num_satellite + num_groundstation) + j + 1, capacity=inf, weight=1)
+
+    for i in range(start_id, end_id - 1):
+        for j in range(0, num_satellite):
             if matching[i].get(j) is not None:
-                edge_list.append([i*total_num+j+1,total_num*(i+1)+matching[i][j]+1,ground_station_max_transmit_packets_per_time_step[matching[i][j]-num_satellite]])
+                G.add_edge(i * (num_satellite + num_groundstation) + j + 1, (i + 1) * (num_satellite + num_groundstation) + matching[i][j] + 1, capacity=ground_station_max_transmit_packets_per_time_step[matching[i][j] - num_satellite], weight=1)
 
+    for i in range(start_id, end_id):
+        for j in range(0, num_groundstation):
+            G.add_edge(i * (num_satellite + num_groundstation) + num_satellite + j + 1, end_node_id, capacity=ground_station_handle_packages_per_time_step[j], weight=0)
 
-    for i in range(start_id,end_id):
-        for j in range(0,num_groundstation):
-            edge_list.append([i*total_num+num_satellite+j+1,end_node_id,ground_station_handle_packages_per_time_step[j]])
-       
-    for i in range(start_id,end_id-1):
+    for i in range(start_id, end_id - 1):
         for edge in edges:
-            edge_list.append([i*total_num+edge[0]+1,(i+1)*total_num+edge[1]+1,isl_max_cap])
-            edge_list.append([i*total_num+edge[1]+1,(i+1)*total_num+edge[0]+1,isl_max_cap])
-    edge_list_with_costs = []
-    for edge in edge_list:
-        from_node, to_node, capacity = edge
-        # 为源点和汇点设置费用为0，其他为1
-        cost = 0 if from_node == 0 or to_node == end_node_id else 1
-        edge_list_with_costs.append((from_node, to_node, capacity, cost))
-    return edge_list_with_costs
+            G.add_edge(i * (num_satellite + num_groundstation) + edge[0] + 1, (i + 1) * (num_satellite + num_groundstation) + edge[1] + 1, capacity=isl_max_cap, weight=1)
+            G.add_edge(i * (num_satellite + num_groundstation) + edge[1] + 1, (i + 1) * (num_satellite + num_groundstation) + edge[0] + 1, capacity=isl_max_cap, weight=1)
+
+    return G, end_node_id
 
 
-def extract_data_from_flow(max_flow, num_timeslots, num_satellites, num_groundstations,total_sim_time_ns,sim_time_step_ns,epoch):
-    inf = 9999999999
+
+def extract_data_from_flow(flow_dict, num_timeslots, num_satellites, num_groundstations, total_sim_time_ns, sim_time_step_ns, epoch):
     end_node_id = num_timeslots * (num_satellites + num_groundstations) + 1
     routing_table = []
-    time_slot=0
-    for time_since_epoch in range(0,total_sim_time_ns,sim_time_step_ns):
-        now=time_since_epoch*u.ns+epoch
+
+    # 初始化路由表
+    time_slot = 0
+    for time_since_epoch in range(0, total_sim_time_ns, sim_time_step_ns):
+        now = time_since_epoch * u.ns + epoch
         routing_table.append([now])
-        for i in range(0,num_satellites):
+        for i in range(0, num_satellites):
             routing_table[time_slot].append([])
-        time_slot+=1
-    for arc in range(max_flow.NumArcs()):
-        if max_flow.Flow(arc) > 0 and max_flow.Head(arc) != end_node_id and max_flow.Tail(arc) != 0:
-            sender = (max_flow.Tail(arc)-1) % (num_satellites + num_groundstations)
-            receiver = (max_flow.Head(arc)-1) % (num_satellites + num_groundstations)
-            time_slot= (max_flow.Tail(arc)-1) // (num_satellites + num_groundstations)
-            if (sender!=receiver):
-                try:
-                    routing_table[time_slot][sender+1].append([receiver, max_flow.Flow(arc)])
-                except:
-                    print("time_slot",time_slot,"sender",sender,"receiver",receiver,"max_flow.Flow(arc)",inf)#max_flow.Flow(arc))
+        time_slot += 1
+
+    # 遍历所有的流量
+    for from_node, to_dict in flow_dict.items():
+        for to_node, flow in to_dict.items():
+            if flow > 0 and to_node != end_node_id and from_node != 0:
+                sender = (from_node - 1) % (num_satellites + num_groundstations)
+                receiver = (to_node - 1) % (num_satellites + num_groundstations)
+                time_slot = (from_node - 1) // (num_satellites + num_groundstations)
+                if sender != receiver:
+                    try:
+                        routing_table[time_slot][sender + 1].append([receiver, flow])
+                    except Exception as e:
+                        print(f"Error at time_slot {time_slot}, sender {sender}, receiver {receiver}, flow {flow}: {e}")
+
     return routing_table
 
 def sat_choose(visiable_helper,gid,now,sat_choosed,num_satellite):
@@ -113,25 +104,25 @@ def sim_with_hurry( total_sim_time_ns,
         sat_choosed=[]
         for gid in range(len(ground_stations)):
             if sat_choose_gs_pre[gid]==-1 or vhp.visible_times[gid][sat_choose_gs_pre[gid]][1]<now:
-                sat_choose_cur[gid+len(satellites)]=sat_choose(vhp,gid,now,sat_choosed,len(satellites))
+                choosed_sat=sat_choose(vhp,gid,now,sat_choosed,len(satellites))
+                sat_choose_cur[gid+len(satellites)]=choosed_sat
+                sat_choose_cur[choosed_sat]=gid+len(satellites)
             else:
                 sat_choose_cur[gid+len(satellites)]=sat_choose_gs_pre[gid]
+                sat_choose_cur[sat_choose_gs_pre[gid]]=gid+len(satellites)
             sat_choosed.append(sat_choose_cur[gid+len(satellites)])
-        
+        print(sat_choose_cur)
+        for key in sat_choose_cur:
+            sat_choose_cur[sat_choose_cur[key]]=key
         matching.append(sat_choose_cur)
         # print(matching)
 
-    flow_graph_with_costs=construct_flow_graph(matching,0,len(matching),len(satellites),len(ground_stations),satellite_generated_packages_per_time_step,ground_station_max_transmit_packets_per_time_step,ground_station_handle_packages_per_time_step,edges,isl_max_cap)
-    
-    
-    end_node_id=len(matching)*(len(satellites)+len(ground_stations))+1
-    min_cost_flow = pywrapgraph.SimpleMinCostFlow()
-    for edge in flow_graph_with_costs:
-        from_node, to_node, capacity, cost = edge
-        min_cost_flow.AddArcWithCapacityAndUnitCost(from_node, to_node, capacity, cost)
-    if min_cost_flow.Solve() != min_cost_flow.OPTIMAL:
-        print('There was an issue with the max flow input.')
-        exit()
-    route_data = extract_data_from_flow(min_cost_flow, len(matching), len(satellites), len(ground_stations),total_sim_time_ns,sim_time_step_ns,epoch)
+    flow_graph, end_node_id = construct_flow_graph(matching, 0, len(matching), len(satellites), len(ground_stations), satellite_generated_packages_per_time_step, ground_station_max_transmit_packets_per_time_step, ground_station_handle_packages_per_time_step, edges, isl_max_cap)
+
+    # 计算最小费用流
+    flow_dict = nx.max_flow_min_cost(flow_graph, 0, end_node_id)
+
+    route_data = extract_data_from_flow(flow_dict, len(matching), len(satellites), len(ground_stations), total_sim_time_ns, sim_time_step_ns, epoch)
+    print(route_data)
     return route_data
     

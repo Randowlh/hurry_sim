@@ -517,7 +517,7 @@ def main():
     p3 = multiprocessing.Process(target=run_with_umbra)
     p4 = multiprocessing.Process(target=run_with_max_flow_isl)
     p5 = multiprocessing.Process(target=run_with_coDld)
-    p6 = multiprocessing.Process(target=run_with_test)
+    # p6 = multiprocessing.Process(target=run_with_test)
     p7 = multiprocessing.Process(target=run_with_cost_flow)
     p8 = multiprocessing.Process(target=run_with_hurry)
     # Start processes
@@ -526,7 +526,7 @@ def main():
     p3.start()
     p4.start()
     p5.start()
-    p6.start()
+    # p6.start()
     p7.start()
     p8.start()
     # Wait for processes to finish
@@ -535,7 +535,7 @@ def main():
     p3.join()
     p4.join()
     p5.join()
-    p6.join()
+    # p6.join()
     p7.join()
     p8.join()
     # global throughput_table,throughput_table_with_isl,throughput_table_with_umbra
@@ -568,7 +568,7 @@ if __name__ == "__main__":
     os.makedirs(full_path+"/"+"with_umbra_queue", exist_ok=True)
     os.makedirs(full_path+"/"+"with_flow_queue", exist_ok=True)
     os.makedirs(full_path+"/"+"with_coDld_queue", exist_ok=True)
-    os.makedirs(full_path+"/"+"with_test_queue", exist_ok=True)
+    # os.makedirs(full_path+"/"+"with_test_queue", exist_ok=True)
     os.makedirs(full_path+"/"+"with_hurry_queue", exist_ok=True)
     os.makedirs(full_path+"/"+"with_cost_flow_queue", exist_ok=True)
     full_path_str=full_path+"/"
