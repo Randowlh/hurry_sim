@@ -11,13 +11,14 @@ def construct_flow_graph(matching,
                          ground_station_max_transmit_packets_per_time_step,
                          ground_station_handle_packages_per_time_step,
                          edges,
-                         isl_max_cap
+                         isl_max_cap,
+                         end_generate_id
                          ):
     inf = 9999999999 
     end_node_id=end_id*(num_satellite+num_groundstation)+1
     edge_list=[]
     total_num=num_satellite+num_groundstation
-    for i in range(start_id,end_id):
+    for i in range(start_id,end_generate_id):
         for j in range(0,num_satellite):
             edge_list.append([0,i*total_num+j+1,satellite_generated_packages_per_time_step])
 
@@ -77,7 +78,8 @@ def sim_with_maxflow( total_sim_time_ns,
                     ground_station_handle_packages_per_time_step,#list地面站到数据中心带宽大小
                     max_gsl_length_m,
                     edges,
-                    isl_max_cap
+                    isl_max_cap,
+                    total_generate_time_ns
                    ):
     
     throughput=[]
@@ -101,7 +103,7 @@ def sim_with_maxflow( total_sim_time_ns,
         matching.append(nx.bipartite.maximum_matching(G, top_nodes=uu))
         # print(matching)
 
-    flow_graph=construct_flow_graph(matching,0,len(matching),len(satellites),len(ground_stations),satellite_generated_packages_per_time_step,ground_station_max_transmit_packets_per_time_step,ground_station_handle_packages_per_time_step,edges,isl_max_cap)
+    flow_graph=construct_flow_graph(matching,0,len(matching),len(satellites),len(ground_stations),satellite_generated_packages_per_time_step,ground_station_max_transmit_packets_per_time_step,ground_station_handle_packages_per_time_step,edges,isl_max_cap,total_generate_time_ns//sim_time_step_ns)
     end_node_id=len(matching)*(len(satellites)+len(ground_stations))+1
     max_flow = pywrapgraph.SimpleMaxFlow()
     for edge in flow_graph:
@@ -110,5 +112,7 @@ def sim_with_maxflow( total_sim_time_ns,
         print('There was an issue with the max flow input.')
         exit()
     route_data = extract_data_from_flow(max_flow, len(matching), len(satellites), len(ground_stations),total_sim_time_ns,sim_time_step_ns,epoch)
+    print("max_flow=",max_flow.OptimalFlow())
+    print("optimal_max_flow=",satellite_generated_packages_per_time_step*(total_generate_time_ns//sim_time_step_ns)*len(satellites))
     return route_data
     

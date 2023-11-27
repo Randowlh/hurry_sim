@@ -1,3 +1,4 @@
+
 import networkx as nx
 import astropy.units as u
 import distant_tools
@@ -108,15 +109,7 @@ def generate_with_coDld(satellites,
     satellite_O=[]
     for i in range(len(satellites)):
         satellite_O.append(0)
-        
-    for time_since_epoch in range(0,total_generate_time_ns,sim_time_step_ns):
-        now=time_since_epoch*u.ns+epoch
-        routing_table_now=[now]
-        for i in range(len(satellites)):
-            satellite_O[i]+=satellite_generated_packages_per_time_step
-            routing_table_now.append([])
-        routing_table.append(routing_table_now)
-    for time_since_epoch in range(total_generate_time_ns+sim_time_step_ns,total_sim_time_ns,sim_time_step_ns):
+    for time_since_epoch in range(0,total_sim_time_ns,sim_time_step_ns):
         # if time_since_epoch % (total_sim_time_ns // 100) == 0:
         for i in range(0, len(ground_stations)):
             ground_station_flag[i]=0
@@ -124,8 +117,9 @@ def generate_with_coDld(satellites,
         total_throughput=0
         now=time_since_epoch*u.ns+epoch
         routing_table_now=[now]
-
-
+        if time_since_epoch<=total_generate_time_ns:
+            for i in range(len(satellites)):
+                satellite_O[i]+=satellite_generated_packages_per_time_step
         satellite_choose=[] 
         for groundstation in ground_stations:
             #finding the closest satellite

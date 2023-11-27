@@ -3,13 +3,13 @@ import networkx as nx
 import astropy.units as u
 from ortools.graph import pywrapgraph
 import visiable_helper
-def construct_flow_graph(matching, start_id, end_id, num_satellite, num_groundstation, satellite_generated_packages_per_time_step, ground_station_max_transmit_packets_per_time_step, ground_station_handle_packages_per_time_step, edges, isl_max_cap):
+def construct_flow_graph(matching, start_id, end_id, num_satellite, num_groundstation, satellite_generated_packages_per_time_step, ground_station_max_transmit_packets_per_time_step, ground_station_handle_packages_per_time_step, edges, isl_max_cap,end_generate_id):
     inf = 9999999999
     G = nx.DiGraph()
     end_node_id = end_id * (num_satellite + num_groundstation) + 1
 
     # 添加节点和边
-    for i in range(start_id, end_id):
+    for i in range(start_id, end_generate_id):
         for j in range(0, num_satellite):
             G.add_edge(0, i * (num_satellite + num_groundstation) + j + 1, capacity=satellite_generated_packages_per_time_step, weight=0)
 
@@ -75,7 +75,8 @@ def sim_with_cost_flow( total_sim_time_ns,
                     ground_station_handle_packages_per_time_step,#list地面站到数据中心带宽大小
                     max_gsl_length_m,
                     edges,
-                    isl_max_cap
+                    isl_max_cap,
+                    total_generate_time_ns
                    ):
     
     throughput=[]
@@ -101,7 +102,7 @@ def sim_with_cost_flow( total_sim_time_ns,
         # print(matching)
 
     
-    flow_graph, end_node_id = construct_flow_graph(matching, 0, len(matching), len(satellites), len(ground_stations), satellite_generated_packages_per_time_step, ground_station_max_transmit_packets_per_time_step, ground_station_handle_packages_per_time_step, edges, isl_max_cap)
+    flow_graph, end_node_id = construct_flow_graph(matching, 0, len(matching), len(satellites), len(ground_stations), satellite_generated_packages_per_time_step, ground_station_max_transmit_packets_per_time_step, ground_station_handle_packages_per_time_step, edges, isl_max_cap,total_generate_time_ns//sim_time_step_ns)
 
     # 计算最小费用流
     flow_dict = nx.max_flow_min_cost(flow_graph, 0, end_node_id)

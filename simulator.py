@@ -97,6 +97,7 @@ def simulator(
       gsl_link_bandwidth,
       isl_link_bandwidth,
       epoch,
+      total_generate_time_ns
     ):
   time_step//=10
   total_sim_time-=10*time_step
@@ -113,7 +114,7 @@ def simulator(
   ground_station_store_queue=[]
   #统计信息
   packet_droped_table=[]
-  latency_table=[]
+  latency_table={}
   throughput_table=[]
   satellite_queue_len=[]
   ground_station_queue_len=[]
@@ -121,7 +122,6 @@ def simulator(
   for i in range(0, total_time_step+10):
     data_center_queue.append({})
     packet_droped_table.append(0)
-    latency_table.append([0,0])
     throughput_table.append(0)
     ground_station_queue_len.append(0)
   
@@ -149,12 +149,26 @@ def simulator(
   #####################################
   current_routing_table_id=0
   current_loop_id=0
+  total_packet_gen=0
+  total_througput=0
+  total_queue_len=0
+  print("total_time_step",total_time_step)
+  print("total_sim_time",total_sim_time)
+  print("total_generate_time_ns",total_generate_time_ns)
+  print("therdocal gen_data=",total_generate_time_ns*satellite_generated_packages_per_time_step/time_step*num_satellite)
   for time_since_epoch in range(0,total_sim_time,time_step):
     print("Simulation progress: {:.2%}".format(time_since_epoch / total_sim_time))
     now=time_since_epoch*u.ns+epoch
     # 计算当前模拟时间
-    for satellite_id in range(0,num_satellite):
-      satellite_store_queue[satellite_id][time_since_epoch]=satellite_store_queue[satellite_id].get(time_since_epoch,0)+satellite_generated_packages_per_time_step
+    if time_since_epoch<total_generate_time_ns:
+      print("data generate",time_since_epoch)
+      print("sat num",num_satellite)
+      print("satellite generate ",satellite_generated_packages_per_time_step)
+      print("multiply",num_satellite*satellite_generated_packages_per_time_step)
+      for satellite_id in range(0,num_satellite):
+        satellite_store_queue[satellite_id][time_since_epoch]=satellite_store_queue[satellite_id].get(time_since_epoch,0)+satellite_generated_packages_per_time_step
+        # print("total packet gen ",total_packet_gen)
+        total_packet_gen+=satellite_generated_packages_per_time_step
       # 生成数据包
     while routing_table[current_routing_table_id][0]<now:
       current_routing_table_id+=1
@@ -188,11 +202,13 @@ def simulator(
               send(key,count,satellite_id,i[0],epoch,now,num_satellite,current_loop_id,satellite_queue,ground_station_queue,packet_droped_table,satellites,ground_stations,isl_packet_drop_rate,gsl_packet_drop_rate,time_step)
       ########################
       # 卫星保存数据到下一个时刻
+    total_queue_len=0
     for satellite_id in range(0,num_satellite):
       for key in list(satellite_queue[current_loop_id+1][satellite_id].keys()):
         satellite_store_queue[satellite_id][key]=satellite_store_queue[satellite_id].get(key,0)+satellite_queue[current_loop_id+1][satellite_id][key]
       Queue_sizet=get_size(satellite_store_queue[satellite_id])
       satellite_queue_len[satellite_id].append(Queue_sizet)
+      total_queue_len+=Queue_sizet
 
     for ground_station_id in range(0,num_ground_station):
       
@@ -222,8 +238,8 @@ def simulator(
             
     for key in  list(data_center_queue[current_loop_id].keys()):
       throughput_table[current_loop_id]+=data_center_queue[current_loop_id][key]
-      latency_table[current_loop_id][0]+=(time_since_epoch-key)*data_center_queue[current_loop_id][key]
-      latency_table[current_loop_id][1]+=data_center_queue[current_loop_id][key]
+      total_througput+=data_center_queue[current_loop_id][key]
+      latency_table[(time_since_epoch-key)]=latency_table.get((time_since_epoch-key),0)+data_center_queue[current_loop_id][key]
       del data_center_queue[current_loop_id][key]
     a=satellite_queue[current_loop_id]
     satellite_queue[current_loop_id]=[]
@@ -233,13 +249,13 @@ def simulator(
     del a
     current_loop_id+=1
   latency=[]
-  for i in range(0,len(latency_table)):
-    if(latency_table[i][1]==0):
-      latency.append(0)
-    else:
-      latency.append(latency_table[i][0]/latency_table[i][1])
+  for key in latency_table.keys():
+    latency.append(key)
+    latency.append(latency_table[key])
 
-
+  print("total_packet_gen",total_packet_gen)
+  print("total_througput",total_througput)
+  print("total_queue_len",total_queue_len)
   return throughput_table,latency,packet_droped_table,satellite_queue_len,ground_station_queue_len
     
 if __name__ == '__main__':
