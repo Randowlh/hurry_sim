@@ -97,7 +97,7 @@ def sim_with_cost_flow( total_sim_time_ns,
         uu = [n for n in G.nodes if G.nodes[n]['bipartite'] == 0]
         match=nx.bipartite.maximum_matching(G, top_nodes=uu)
         # 使用最大匹配算法求解最大匹配
-        print(match)
+        # print(match)
         matching.append(match)
         # print(matching)
 

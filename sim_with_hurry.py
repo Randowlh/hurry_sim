@@ -2,7 +2,8 @@ import distant_tools
 import networkx as nx
 import astropy.units as u
 from ortools.graph import pywrapgraph
-import visiable_helper
+# import visiable_helper
+import distant_tools
 def construct_flow_graph(matching, start_id, end_id, num_satellite, num_groundstation, satellite_generated_packages_per_time_step, ground_station_max_transmit_packets_per_time_step, ground_station_handle_packages_per_time_step, edges, isl_max_cap,end_generate_id):
     inf = 9999999999
     G = nx.DiGraph()
@@ -94,25 +95,59 @@ def sim_with_hurry( total_sim_time_ns,
     throughput=[]
     matching=[]
     
-    vhp=visiable_helper.Visible_time_helper(ground_stations,satellites,max_gsl_length_m,epoch,sim_time_step_ns,total_sim_time_ns)
+    # vhp=visiable_helper.Visible_time_helper(ground_stations,satellites,max_gsl_length_m,epoch,sim_time_step_ns,total_sim_time_ns)
     sat_choose_gs_pre=[]
-    for i in range(0,len(satellites)):
-        sat_choose_gs_pre.append(-1)
+    
+    
+    match={}
+    for time_since_epoch in range(0,total_sim_time_ns,sim_time_step_ns):
+        print("cost flow generating progress: {:.2%}".format(time_since_epoch / total_sim_time_ns))
+        now=time_since_epoch*u.ns+epoch
+        G=nx.Graph()
+        for i in range(0, len(satellites)):
+            G.add_node(i, bipartite=0)
+        for i in range(0,len(ground_stations)):
+            G.add_node(i+len(satellites), bipartite=1)
+        for i in range(0,len(satellites)):
+            for j in range(0,len(ground_stations)):
+                if(distant_tools.distance_m_ground_station_to_satellite(ground_stations[j],satellites[i],str(epoch),str(now))<=max_gsl_length_m):
+                    # print("i",i,"j",j)
+                    G.add_edge(i,j+len(satellites))
+        uu = [n for n in G.nodes if G.nodes[n]['bipartite'] == 0]
+        match=nx.bipartite.maximum_matching(G, top_nodes=uu)
+        # 使用最大匹配算法求解最大匹配
+        break;
+    
+    for i in range(0,len(ground_stations)):
+        sat_choose_gs_pre.append(match[i+len(satellites)])
+    
+    G_sat = nx.Graph()
+    # add node to the graph
+    for i in range(0, len(satellites)):
+        G_sat.add_node(i)
+    # edges : [[1,2],[3,4]] : 1-2, 3-4
+    for edge in edges:
+        G_sat.add_edge(edge[0], edge[1])
+        G_sat.add_edge(edge[1], edge[0]) #need correct
+    
+    
     for time_since_epoch in range(0,total_sim_time_ns,sim_time_step_ns):
         print("hurry generating progress: {:.2%}".format(time_since_epoch / total_sim_time_ns))
         now=time_since_epoch*u.ns+epoch
         sat_choose_cur={}
-        sat_choosed=[]
+        # sat_choosed=[]
         for gid in range(len(ground_stations)):
-            if sat_choose_gs_pre[gid]==-1 or vhp.visible_times[gid][sat_choose_gs_pre[gid]][1]<now:
-                choosed_sat=sat_choose(vhp,gid,now,sat_choosed,len(satellites))
-                sat_choose_cur[gid+len(satellites)]=choosed_sat
-                sat_choose_cur[choosed_sat]=gid+len(satellites)
-            else:
+            if(distant_tools.distance_m_ground_station_to_satellite(ground_stations[gid],satellites[sat_choose_gs_pre[gid]],str(epoch),str(now))<=max_gsl_length_m):
                 sat_choose_cur[gid+len(satellites)]=sat_choose_gs_pre[gid]
                 sat_choose_cur[sat_choose_gs_pre[gid]]=gid+len(satellites)
-            sat_choosed.append(sat_choose_cur[gid+len(satellites)])
-        print(sat_choose_cur)
+            else:
+                for i in G_sat.neighbors(sat_choose_gs_pre[gid]):
+                    if(distant_tools.distance_m_ground_station_to_satellite(ground_stations[gid],satellites[i],str(epoch),str(now))<=max_gsl_length_m):
+                        sat_choose_cur[gid+len(satellites)]=i
+                        sat_choose_cur[i]=gid+len(satellites)
+                        break
+            # sat_choosed.append(sat_choose_cur[gid+len(satellites)])
+        # print(sat_choose_cur)
         for key in sat_choose_cur:
             sat_choose_cur[sat_choose_cur[key]]=key
         matching.append(sat_choose_cur)

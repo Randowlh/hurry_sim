@@ -606,7 +606,7 @@ def main():
     p5 = multiprocessing.Process(target=run_with_coDld)
     p6 = multiprocessing.Process(target=run_with_test)
     p7 = multiprocessing.Process(target=run_with_cost_flow)
-    # p8 = multiprocessing.Process(target=run_with_hurry)
+    p8 = multiprocessing.Process(target=run_with_hurry)
     p9 = multiprocessing.Process(target=run_with_coDld_motify)
     # Start processes
     p1.start()
@@ -616,7 +616,7 @@ def main():
     p5.start()
     p6.start()
     p7.start()
-    # p8.start()
+    p8.start()
     p9.start()
     # Wait for processes to finish
     p1.join()
@@ -626,7 +626,7 @@ def main():
     p5.join()
     p6.join()
     p7.join()
-    # p8.join()
+    p8.join()
     p9.join()
     # global throughput_table,throughput_table_with_isl,throughput_table_with_umbra
     # print("baseline")   
