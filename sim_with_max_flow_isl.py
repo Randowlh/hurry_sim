@@ -47,6 +47,7 @@ def extract_data_from_flow(max_flow, num_timeslots, num_satellites, num_groundst
     end_node_id = num_timeslots * (num_satellites + num_groundstations) + 1
     routing_table = []
     time_slot=0
+    total_trans=0
     for time_since_epoch in range(0,total_sim_time_ns,sim_time_step_ns):
         now=time_since_epoch*u.ns+epoch
         routing_table.append([now])
@@ -62,7 +63,10 @@ def extract_data_from_flow(max_flow, num_timeslots, num_satellites, num_groundst
                 try:
                     routing_table[time_slot][sender+1].append([receiver, max_flow.Flow(arc)])
                 except:
-                    print("time_slot",time_slot,"sender",sender,"receiver",receiver,"max_flow.Flow(arc)",inf)#max_flow.Flow(arc))
+                    print("time_slot",time_slot,"sender",sender,"receiver",receiver,"max_flow.Flow(arc)",inf)
+            if(receiver>=num_satellites):
+                total_trans+=max_flow.Flow(arc)
+    print("total_trans=",total_trans)
     return routing_table
 
 

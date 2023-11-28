@@ -48,6 +48,7 @@ def extract_data_from_flow(flow_dict, num_timeslots, num_satellites, num_grounds
             routing_table[time_slot].append([])
         time_slot += 1
 
+    
     # 遍历所有的流量
     for from_node, to_dict in flow_dict.items():
         for to_node, flow in to_dict.items():

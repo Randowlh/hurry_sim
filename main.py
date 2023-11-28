@@ -24,7 +24,7 @@ import sim_with_coDld_motify
 satellite_generated_packages_per_time_step = 4 # 400 mbps
 ground_station_handle_packages_per_time_step=999999999
 
-isl_max_cap = 10 # 10Gbps
+
 throughput_table = []
 throughput_table_with_isl = []
 max_gsl_length_m = 1260000.0000000000
@@ -598,7 +598,7 @@ def run_with_coDld_motify():
 ##################################################################
 
 def main():
-    # Initialize multiprocessing processes
+    # # Initialize multiprocessing processes
     p1 = multiprocessing.Process(target=run_baseline)
     p2 = multiprocessing.Process(target=run_with_isl)
     p3 = multiprocessing.Process(target=run_with_umbra)
