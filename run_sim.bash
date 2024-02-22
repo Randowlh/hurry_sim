@@ -5,17 +5,17 @@ rm -f nohup.out
 # nohup python -u main.py 100000 1000 10000 4 50 50 sim_medim_100 &
 # nohup python -u main.py 100000 1000 10000 4 100 100 sim_light_100 &
 
-nohup python -u main.py 1000000 10000 100000 4 10 10 sim_heavy_100 &
-nohup python -u main.py 1000000 10000 100000 4 50 50 sim_medim_100 &
-nohup python -u main.py 1000000 10000 100000 4 100 100 sim_light_100 &
+# nohup python -u main.py 1000000 10000 100000 4 10 10 sim_heavy_100 &
+# nohup python -u main.py 1000000 10000 100000 4 50 50 sim_medim_100 &
+# nohup python -u main.py 1000000 10000 100000 4 100 100 sim_light_100 &
 
-nohup python -u main.py 10000 100 1000 4 10 10 sim_heavy_100 &
-nohup python -u main.py 10000 100 1000 4 50 50 sim_medim_100 &
-nohup python -u main.py 10000 100 1000 4 100 100 sim_light_100 &
+# nohup python -u main.py 10000 100 1000 4 10 10 sim_heavy_100 &
+# nohup python -u main.py 10000 100 1000 4 50 50 sim_medim_100 &
+# nohup python -u main.py 10000 100 1000 4 100 100 sim_light_100 &
 
-nohup python -u main.py 1000000 1000 10000 4 10 10 sim_heavy_100 &
-nohup python -u main.py 1000000 1000 10000 4 50 50 sim_medim_100 &
-nohup python -u main.py 1000000 1000 10000 4 100 100 sim_light_100 &
+python -u fall_back_main.py 1000000 1000 10000 4 10 10 sim_heavy_100 
+# nohup python -u main.py 1000000 1000 10000 4 50 50 sim_medim_100 &
+# nohup python -u main.py 1000000 1000 10000 4 100 100 sim_light_100 &
 
 
 # nohup python -u main.py 5000000 1000 10000 4 10 10 sim_heavy_100 &
